@@ -3,3 +3,6 @@ langchain_community
 langchain_openai
 langchain_text_splitters
 pydantic
+pypdf
+faiss-cpu
+# faiss-gpu
