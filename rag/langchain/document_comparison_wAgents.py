@@ -12,6 +12,10 @@ import os
 import glob
 from rag.load_keys import *
 
+from langchain_mistralai import MistralAIEmbeddings
+from langchain_mistralai import ChatMistralAI
+from langchain_core.prompts import ChatPromptTemplate
+
 
 # """
 # If you want to import load_keys.py from any Python script in any subdirectory of the root, you can add the root directory to your PYTHONPATH.
@@ -34,8 +38,14 @@ from rag.load_keys import *
 class DocumentInput(BaseModel):
     question: str = Field()
 
+# OpenAI
+# llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-0613")
+# embeddings = OpenAIEmbeddings()
 
-llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-0613")
+# Mistral
+mistral_model = "mistral-large-latest" # "open-mixtral-8x22b" 
+llm = ChatMistralAI(model=mistral_model, temperature=0)
+embeddings = MistralAIEmbeddings()
 
 
 
@@ -63,7 +73,7 @@ def wrap_retrievers_in_tool(file, retriever, llm):
         )
     )
 
-embeddings = OpenAIEmbeddings()
+
 
 if not os.path.exists("faiss_index"):
     print("Creating 'faiss_index'")
@@ -93,13 +103,9 @@ print(len(tools))
 # docs = retriever.invoke("fire regulations")
 # print(docs)
 
-llm = ChatOpenAI(
-    temperature=0,
-    model="gpt-3.5-turbo-0613",
-)
-
 agent = initialize_agent(
-    agent=AgentType.OPENAI_FUNCTIONS,
+    # agent=AgentType.OPENAI_FUNCTIONS,
+    agent="zero-shot-react-description",
     tools=tools,
     llm=llm,
     verbose=True,

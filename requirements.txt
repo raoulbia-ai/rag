@@ -1,6 +1,7 @@
 langchain
 langchain_community
 langchain_openai
+langchain_mistralai
 langchain_text_splitters
 pydantic
 pypdf

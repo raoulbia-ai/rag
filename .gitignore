@@ -172,5 +172,5 @@ frontend/dist/
 
 .vscode
 .lightning_studio/
-.bash_historygit
+.bash_history
 .viminfo
