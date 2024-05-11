@@ -1,3 +1,14 @@
+"""
+https://python.langchain.com/v0.1/docs/integrations/toolkits/document_comparison_toolkit/
+
+agent types: 
+- https://python.langchain.com/v0.1/docs/modules/agents/agent_types/
+- https://levelup.gitconnected.com/giving-mistral-7b-access-to-tools-with-langchain-agents-8daf3d1fe741
+
+source ~/.bashrc
+
+"""
+
 from langchain.agents import Tool
 from langchain.chains import RetrievalQA
 from langchain_community.document_loaders import PyPDFLoader
@@ -15,24 +26,6 @@ from rag.load_keys import *
 from langchain_mistralai import MistralAIEmbeddings
 from langchain_mistralai import ChatMistralAI
 from langchain_core.prompts import ChatPromptTemplate
-
-
-# """
-# If you want to import load_keys.py from any Python script in any subdirectory of the root, you can add the root directory to your PYTHONPATH.
-# nano ~/.bashrc
-# Add the following line at the end of the file, replacing /path/to/your/root/directory with the actual path to your root directory:
-# export PYTHONPATH="${PYTHONPATH}:/teamspace/studios/this_studio"
-# Save and close the file.
-# Source your .bashrc file to apply the changes: source ~/.bashrc
-# make sure to cd into rag
-# """
-# try:
-#     from rag.load_keys import *
-#     print("config module is available")
-# except ImportError as e:
-#     print(e)
-
-
 
 
 class DocumentInput(BaseModel):
@@ -98,11 +91,6 @@ print(type(tools))
 print(len(tools))
 
     
-# testing
-# retriever = index.as_retriever()
-# docs = retriever.invoke("fire regulations")
-# print(docs)
-
 agent = initialize_agent(
     # agent=AgentType.OPENAI_FUNCTIONS,
     agent="zero-shot-react-description",
@@ -112,3 +100,8 @@ agent = initialize_agent(
 )
 
 agent({"input": "list the names of all the centers. fomat as buullet points"})
+
+# testing
+# retriever = index.as_retriever()
+# docs = retriever.invoke("fire regulations")
+# print(docs)
