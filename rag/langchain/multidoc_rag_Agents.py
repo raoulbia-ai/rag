@@ -41,7 +41,7 @@ llm = ChatMistralAI(model=mistral_model, temperature=0)
 embeddings = MistralAIEmbeddings()
 
 
-
+# Create Files list of dicts
 directory_path = "/teamspace/uploads"
 pdf_files = glob.glob(os.path.join(directory_path, "*.pdf"))
 files = []
