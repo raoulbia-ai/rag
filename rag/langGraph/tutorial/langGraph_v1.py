@@ -1,5 +1,10 @@
 """https://medium.com/@cplog/introduction-to-langgraph-a-beginners-guide-14f9be027141"""
 
+from langgraph.graph import StateGraph, END
+from typing import Dict, TypedDict, Optional
+from langchain_core.runnables.graph import CurveStyle, NodeColors, MermaidDrawMethod
+# from IPython.display import display, HTML, Image
+
 def classify(question=None):
     return "classified as X"
 
@@ -23,13 +28,12 @@ def decide_next_node(state):
          return "handle_search"
 
 
-from typing import Dict, TypedDict, Optional
 class GraphState(TypedDict):
     question: Optional[str] = None
     classification: Optional[str] = None
     response: Optional[str] = None
 
-from langgraph.graph import StateGraph, END
+
 workflow = StateGraph(GraphState)
 workflow.add_node("classify_input", classify_input_node)
 workflow.add_node("handle_greeting", handle_greeting_node)
@@ -50,11 +54,6 @@ G = workflow.compile()
 inputs = {"question": "Hello, how are you?"}
 result = G.invoke(inputs)
 print(result)
-
-from langchain_core.runnables.graph import CurveStyle, NodeColors, MermaidDrawMethod
-from IPython.display import display, HTML, Image
-
-# display(Image(G.get_graph().draw_mermaid_png(draw_method=MermaidDrawMethod.API,)))
 
 with open('output.png', 'wb') as f:
     f.write(G.get_graph().draw_mermaid_png(draw_method=MermaidDrawMethod.API))

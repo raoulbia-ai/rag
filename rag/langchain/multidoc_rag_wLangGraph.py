@@ -1,7 +1,5 @@
 """
-
 source ~/.bashrc
-
 """
 from langchain.agents import Tool
 from langchain.chains import RetrievalQA
