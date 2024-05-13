@@ -14,7 +14,7 @@ from langchain.agents import AgentType, initialize_agent
 from pprint import pprint
 import os
 import glob
-from rag.load_keys import *
+# from rag.load_keys import *0000000000000000000
 
 from langchain_mistralai import MistralAIEmbeddings
 from langchain_mistralai import ChatMistralAI
@@ -24,12 +24,20 @@ from typing_extensions import TypedDict
 from typing import List
 from langchain.schema import Document
 
-
 from langgraph.graph import END, StateGraph
 
+import logging, os# Configure logging
+logging.basicConfig(level=logging.INFO,
+                    format='%(levelname)s - %(funcName)s - %(message)s')
+
+# Load API Key
+from dotenv import load_dotenv, find_dotenv
+_ = load_dotenv(find_dotenv())
+mistral_api_key = os.getenv("MISTRAL_API_KEY")
+
+
 os.environ['TOKENIZERS_PARALLELISM'] = 'true'
 os.environ['TOKENIZERS_PARALLELISM'] = 'true'
-# mistral_api_key = os.getenv("MISTRAL_API_KEY") # Ensure this is set
 
 class DocumentInput(BaseModel):
     question: str = Field()
@@ -72,10 +80,8 @@ class GradeDocuments(BaseModel):
 
     binary_score: str = Field(description="Documents are relevant to the question, 'yes' or 'no'")
 
-# LLM with function call 
-# mistral_model = "mistral-large-latest" # "open-mixtral-8x22b" 
-# llm = ChatMistralAI(model=mistral_model, temperature=0)
 structured_llm_grader = llm.with_structured_output(GradeDocuments)
+
 
 # Prompt 
 system = """You are a grader assessing relevance of a retrieved document to a user question. \n 
@@ -165,6 +171,15 @@ def generate(state):
     question = state["question"]
     documents = state["documents"]
     
+    from langchain import hub
+    from langchain_core.output_parsers import StrOutputParser
+
+    # Prompt
+    prompt = hub.pull("rlm/rag-prompt")
+    logging.info(f"Prompt Hub prompt: {prompt}")
+
+    # Chain
+    rag_chain = prompt | llm | StrOutputParser()
     # RAG generation
     generation = rag_chain.invoke({"context": documents, "question": question})
     return {"documents": documents, "question": question, "generation": generation}
@@ -245,13 +260,16 @@ workflow.add_conditional_edges(
 workflow.add_edge("generate", END)
 
 # Compile
-app = workflow.compile()
+G = workflow.compile()
 
+from langchain_core.runnables.graph import CurveStyle, NodeColors, MermaidDrawMethod
+with open('output_v4.png', 'wb') as f:
+    f.write(G.get_graph().draw_mermaid_png(draw_method=MermaidDrawMethod.API))
 
 if __name__ == "__main__":
     
     inputs = {"question": "What are the names of the inspected cetnres?"}
-    for output in app.stream(inputs):
+    for output in G.stream(inputs):
         for key, value in output.items():
             print(key)
             print(value)

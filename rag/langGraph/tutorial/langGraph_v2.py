@@ -1,3 +1,7 @@
+import logging, os# Configure logging
+logging.basicConfig(level=logging.INFO,
+                    format='%(levelname)s - %(funcName)s - %(message)s')
+
 from typing import Dict, TypedDict, Optional
 from langgraph.graph import StateGraph, END
 import random  # Added for generating random greetings
@@ -6,23 +10,27 @@ from langchain_core.runnables.graph import CurveStyle, NodeColors, MermaidDrawMe
 from langchain_core.tools import tool
 from typing import Literal, Annotated
 from langgraph.graph.message import add_messages
-from rag.load_keys import *
-
-@tool
-def search(query: str):
-    """Call to surf the web."""
-    # This is a placeholder, but don't tell the LLM that...
-    return [
-        "Try again in a few seconds! Checking with the weathermen... Call be again next."
-    ]
-
-
-tools = [search]
 from langgraph.prebuilt import ToolNode
-tool_node = ToolNode(tools)
-
+from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_openai import ChatOpenAI
+from langchain.tools import BaseTool
+# from rag.load_keys import *
+
+# Load API Key
+from dotenv import load_dotenv, find_dotenv
+_ = load_dotenv(find_dotenv())
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+SERPAPI_API_KEY = os.environ["SERPAPI_API_KEY"]
+
+
 model = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
+
+# tools = [search]
+from langchain.agents import load_tools, get_all_tool_names
+# tools = load_tools(["serpapi"])
+tools = load_tools(["llm-math"], llm=model)
+# tools = load_tools(["read_file"])
+tool_node = ToolNode(tools)
 model = model.bind_tools(tools)
 
 class State(TypedDict):
@@ -31,12 +39,15 @@ class State(TypedDict):
 # Define the function that calls the model
 def call_model(state):
     messages = []
+    logging.info(f"State: {state}")
     for m in state["messages"][::-1]:
         messages.append(m)
         if len(messages) >= 5:
             if messages[-1].type != "tool":
-                break
+                logging.info(f"Messages: {messages}")
+                # break
     response = model.invoke(messages[::-1])
+
     # We return a list, because this will get added to the existing list
     return {"messages": [response]}
 
@@ -47,6 +58,7 @@ def call_model(state):
 def should_continue(state: State) -> Literal["__end__", "action"]:
     messages = state["messages"]
     last_message = messages[-1]
+    logging.info(f"##### Last message: {last_message}")
     # If there is no function call, then we finish
     if not last_message.tool_calls:
         return "end"
@@ -96,6 +108,24 @@ workflow.add_edge("action", "agent")
 # meaning you can use it as you would any other runnable
 G = workflow.compile()
 
+from langchain_core.messages import HumanMessage
+
+query = "read file /teamspace/uploads/Dashboard_Reviewing_Checklist.csv"
+query = "compute 6 * 8"
+inputs = {
+    "messages": [
+        HumanMessage(
+            # content="what is the weather in sf?."
+            content=query
+        )
+    ]
+}
+for event in G.stream(inputs, stream_mode="values"):
+    # stream() yields dictionaries with output keyed by node name
+    for message in event["messages"]:
+        message.pretty_print()
+    print("\n---\n")
+
 # while True:
 #     question = input("Ask a question: ")
 #     inputs = {"question": question}
@@ -104,5 +134,5 @@ G = workflow.compile()
 
 # display(Image(G.get_graph().draw_mermaid_png(draw_method=MermaidDrawMethod.API,)))
 
-with open('output_v2.png', 'wb') as f:
-    f.write(G.get_graph().draw_mermaid_png(draw_method=MermaidDrawMethod.API))
+# with open('output_v2.png', 'wb') as f:
+#     f.write(G.get_graph().draw_mermaid_png(draw_method=MermaidDrawMethod.API))

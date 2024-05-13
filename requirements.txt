@@ -8,3 +8,8 @@ pydantic
 pypdf
 faiss-cpu
 # faiss-gpu
+duckduckgo-search
+google-search-results
+wikipedia
+numexpr
+langchainhub

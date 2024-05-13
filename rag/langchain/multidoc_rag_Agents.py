@@ -21,7 +21,16 @@ from langchain.agents import AgentType, initialize_agent
 
 import os
 import glob
-from rag.load_keys import *
+# from rag.load_keys import *
+import logging, os# Configure logging
+logging.basicConfig(level=logging.INFO,
+                    format='%(levelname)s - %(funcName)s - %(message)s')
+
+# Load API Key
+from dotenv import load_dotenv, find_dotenv
+_ = load_dotenv(find_dotenv())
+mistral_api_key = os.getenv("MISTRAL_API_KEY")
+
 
 from langchain_mistralai import MistralAIEmbeddings
 from langchain_mistralai import ChatMistralAI
